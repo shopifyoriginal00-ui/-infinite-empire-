@@ -775,8 +775,228 @@ module.exports = (req, res) => {
     });
   </script>
 </body>
+// Add this to your index.js (replace the payment section)
+
+function activateTier(tier) {
+  const prices = {
+    starter: 999,
+    infinite: 9999,
+    trillionaire: 99999
+  };
+  
+  const amount = prices[tier];
+  
+  // Create payment modal
+  const modal = document.createElement('div');
+  modal.id = 'paymentModal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  modal.innerHTML = `
+    <div style="background: linear-gradient(135deg, #1a1a1f, #0d0d14); border: 3px solid #FFD700; border-radius: 20px; padding: 50px 40px; max-width: 550px; width: 90%; position: relative; box-shadow: 0 0 100px rgba(255, 215, 0, 0.3);">
+      <button onclick="document.getElementById('paymentModal').remove()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: 2px solid #FFD700; color: #FFD700; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 24px; font-weight: bold; transition: all 0.3s;">×</button>
+      
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-family: 'Orbitron', monospace; font-size: 28px; color: #FFD700; margin-bottom: 10px;">
+          ${tier.toUpperCase()} TIER
+        </div>
+        <div style="font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #FFD700, #00F0FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Orbitron', monospace;">
+          ₹${amount.toLocaleString()}
+        </div>
+        <div style="color: #00F0FF; font-size: 14px; margin-top: 10px; opacity: 0.8;">
+          Secure Payment • Instant Activation
+        </div>
+      </div>
+      
+      <div style="display: grid; gap: 15px;">
+        <!-- Instamojo Payment -->
+        <button onclick="payInstamojo('${tier}')" style="padding: 18px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; transition: all 0.3s; box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);">
+          💳 Pay with Card/UPI/Wallet (Instamojo)
+        </button>
+        
+        <!-- Direct UPI -->
+        <button onclick="payDirectUPI(${amount}, '${tier}')" style="padding: 18px; background: rgba(255, 215, 0, 0.1); color: #FFD700; border: 2px solid #FFD700; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; transition: all 0.3s;">
+          📱 Direct UPI Payment (Google Pay/PhonePe)
+        </button>
+        
+        <!-- Manual Payment -->
+        <button onclick="payManual(${amount}, '${tier}')" style="padding: 18px; background: rgba(0, 240, 255, 0.1); color: #00F0FF; border: 2px solid #00F0FF; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; transition: all 0.3s;">
+          🏦 Bank Transfer / WhatsApp Pay
+        </button>
+      </div>
+      
+      <div style="margin-top: 30px; padding: 20px; background: rgba(255, 215, 0, 0.05); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.2);">
+        <div style="color: #FFD700; font-size: 14px; font-weight: 600; margin-bottom: 10px;">
+          ✨ What You Get:
+        </div>
+        <div style="color: #fff; opacity: 0.8; font-size: 13px; line-height: 1.6;">
+          ${tier === 'starter' ? '• 100 AI Tools<br>• 5% Daily Compound<br>• Referral System<br>• API Access' : 
+            tier === 'infinite' ? '• Everything in Starter<br>• 10% Daily Compound<br>• White Label Rights<br>• AI Autopilot' : 
+            '• Everything in Infinite<br>• 50% Daily Compound<br>• Equity Partnership<br>• Dedicated AI Team'}
+        </div>
+      </div>
+      
+      <p style="color: #fff; opacity: 0.4; font-size: 11px; margin-top: 20px; text-align: center;">
+        🔒 256-bit SSL Encryption • Money Back Guarantee • 24/7 Support
+      </p>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// Instamojo Payment
+function payInstamojo(tier) {
+  const links = {
+    starter: 'https://www.instamojo.com/@owais9769731422/starter-tier',
+    infinite: 'https://www.instamojo.com/@owais9769731422/infinite-tier',
+    trillionaire: 'https://www.instamojo.com/@owais9769731422/trillionaire-tier'
+  };
+  
+  // Track payment attempt
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'begin_checkout', {
+      'event_category': 'payment',
+      'event_label': tier,
+      'value': tier === 'starter' ? 999 : tier === 'infinite' ? 9999 : 99999
+    });
+  }
+  
+  // Open Instamojo payment page
+  window.open(links[tier], '_blank');
+  
+  // Show confirmation
+  setTimeout(() => {
+    alert('✅ Payment page opened!\n\nAfter successful payment:\n• You\'ll receive email confirmation\n• Instant access activated\n• Welcome email with login details\n\n💬 Need help? WhatsApp: +91-9769731422');
+  }, 1000);
+}
+
+// Direct UPI Payment
+function payDirectUPI(amount, tier) {
+  const UPI_ID = 'owais9769731422@okhdfcbank';
+  const upiLink = \`upi://pay?pa=\${UPI_ID}&pn=Infinite Compound Empire&am=\${amount}&cu=INR&tn=\${tier.toUpperCase()} Tier Subscription\`;
+  
+  // Try to open UPI app
+  window.location.href = upiLink;
+  
+  // Show instructions
+  setTimeout(() => {
+    const instructionModal = document.createElement('div');
+    instructionModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 999999;';
+    instructionModal.innerHTML = \`
+      <div style="background: linear-gradient(135deg, #1a1a1f, #0d0d14); border: 3px solid #FFD700; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; position: relative;">
+        <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 15px; right: 15px; background: none; border: 2px solid #FFD700; color: #FFD700; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;">×</button>
+        
+        <h3 style="color: #FFD700; margin-bottom: 20px; font-family: 'Orbitron', monospace;">Complete Your UPI Payment</h3>
+        
+        <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+          <div style="color: #fff; margin-bottom: 10px; font-size: 14px; opacity: 0.7;">Pay to UPI ID:</div>
+          <div style="color: #FFD700; font-size: 20px; font-weight: 700; font-family: 'Courier New', monospace;">
+            \${UPI_ID}
+          </div>
+          <div style="color: #fff; margin-top: 15px; font-size: 14px; opacity: 0.7;">Amount:</div>
+          <div style="color: #00F0FF; font-size: 32px; font-weight: 900;">₹\${amount.toLocaleString()}</div>
+        </div>
+        
+        <div style="color: #fff; opacity: 0.8; font-size: 14px; line-height: 1.8;">
+          <strong style="color: #FFD700;">After Payment:</strong><br>
+          1. Take screenshot of payment confirmation<br>
+          2. WhatsApp to: <span style="color: #00F0FF;">+91-9769731422</span><br>
+          3. Get instant access within 5 minutes!<br><br>
+          
+          <strong style="color: #FFD700;">Or Email:</strong><br>
+          Send screenshot to: payment@infiniteempire.com
+        </div>
+        
+        <button onclick="window.open('https://wa.me/919769731422?text=Hi, I just paid ₹\${amount} for \${tier} tier via UPI. Sending screenshot.', '_blank')" style="width: 100%; margin-top: 20px; padding: 15px; background: #25D366; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;">
+          📱 Send on WhatsApp
+        </button>
+      </div>
+    \`;
+    document.body.appendChild(instructionModal);
+  }, 2000);
+}
+
+// Manual Payment
+function payManual(amount, tier) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 999999; overflow-y: auto; padding: 20px;';
+  modal.innerHTML = \`
+    <div style="background: linear-gradient(135deg, #1a1a1f, #0d0d14); border: 3px solid #FFD700; border-radius: 20px; padding: 40px; max-width: 600px; width: 100%; position: relative;">
+      <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 20px; right: 20px; background: none; border: 2px solid #FFD700; color: #FFD700; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 24px;">×</button>
+      
+      <h3 style="color: #FFD700; margin-bottom: 30px; font-family: 'Orbitron', monospace; font-size: 24px;">Manual Payment Options</h3>
+      
+      <div style="background: rgba(255, 215, 0, 0.1); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 2px solid rgba(255, 215, 0, 0.3);">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="color: #00F0FF; font-size: 16px; margin-bottom: 10px;">Total Amount</div>
+          <div style="color: #FFD700; font-size: 48px; font-weight: 900; font-family: 'Orbitron', monospace;">₹\${amount.toLocaleString()}</div>
+          <div style="color: #fff; opacity: 0.7; margin-top: 5px;">\${tier.toUpperCase()} Tier</div>
+        </div>
+      </div>
+      
+      <div style="margin: 25px 0;">
+        <div style="color: #FFD700; font-size: 18px; font-weight: 700; margin-bottom: 15px;">💳 Option 1: UPI Payment</div>
+        <div style="background: rgba(0, 240, 255, 0.1); padding: 20px; border-radius: 10px; border: 1px solid rgba(0, 240, 255, 0.3);">
+          <div style="color: #fff; opacity: 0.7; font-size: 13px; margin-bottom: 8px;">UPI ID:</div>
+          <div style="color: #00F0FF; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; margin-bottom: 15px;">
+            owais9769731422@okhdfcbank
+          </div>
+          <div style="color: #fff; opacity: 0.8; font-size: 13px;">
+            Use Google Pay, PhonePe, Paytm, or any UPI app
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin: 25px 0;">
+        <div style="color: #FFD700; font-size: 18px; font-weight: 700; margin-bottom: 15px;">🏦 Option 2: Bank Transfer</div>
+        <div style="background: rgba(0, 240, 255, 0.1); padding: 20px; border-radius: 10px; border: 1px solid rgba(0, 240, 255, 0.3);">
+          <div style="color: #fff; opacity: 0.8; font-size: 13px; line-height: 1.8;">
+            <strong style="color: #00F0FF;">Account Name:</strong> [Your Name]<br>
+            <strong style="color: #00F0FF;">Account Number:</strong> [Your Acc No]<br>
+            <strong style="color: #00F0FF;">IFSC Code:</strong> [Your IFSC]<br>
+            <strong style="color: #00F0FF;">Bank:</strong> HDFC Bank
+          </div>
+        </div>
+      </div>
+      
+      <div style="background: rgba(255, 215, 0, 0.05); padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #FFD700;">
+        <div style="color: #FFD700; font-weight: 700; margin-bottom: 10px;">📸 After Payment:</div>
+        <div style="color: #fff; opacity: 0.8; font-size: 14px; line-height: 1.8;">
+          1. Take screenshot of payment confirmation<br>
+          2. Send to WhatsApp: <strong style="color: #00F0FF;">+91-9769731422</strong><br>
+          3. Or Email: payment@infiniteempire.com<br>
+          4. Include your email address<br>
+          5. Get access within 5-10 minutes!
+        </div>
+      </div>
+      
+      <button onclick="window.open('https://wa.me/919769731422?text=Hi! I want to purchase \${tier.toUpperCase()} Tier (₹\${amount}). Please guide me.', '_blank')" style="width: 100%; padding: 18px; background: #25D366; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px;">
+        💬 Contact on WhatsApp
+      </button>
+      
+      <div style="text-align: center; margin-top: 20px; color: #fff; opacity: 0.5; font-size: 12px;">
+        ⚡ Instant Activation • 🔒 Secure Payment • ✅ Money Back Guarantee
+      </div>
+    </div>
+  \`;
+  document.body.appendChild(modal);
+}
 </html>
   `;
   
   res.status(200).setHeader('Content-Type', 'text/html').send(html);
+
 };
